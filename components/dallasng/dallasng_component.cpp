@@ -90,10 +90,15 @@ namespace esphome
         OneWireNg::Id id;
         memcpy(&id[0], sensor->get_id_ptr(), sizeof(id));
 
-        OneWireNg::ErrorCode result = one_wire_->reset();
+        OneWireNg::ErrorCode result = OneWireNg::EC_NO_DEVS;
+        for (int attempt = 0; attempt < 3 && result != OneWireNg::EC_SUCCESS; attempt++)
+        {
+          result = one_wire_->reset();
+        }
+
         if (result != OneWireNg::EC_SUCCESS)
         {
-          ESP_LOGE(TAG, "'%s' failed to reset the bus: %d", sensor->get_name().c_str(), result);
+          ESP_LOGE(TAG, "'%s' failed to reset the bus after retries: %d", sensor->get_name().c_str(), result);
           status_set_warning();
           sensor->publish_state(NAN);
           continue;
@@ -106,7 +111,11 @@ namespace esphome
         this->set_timeout(timeout_id, sensor->millis_to_wait_for_conversion(), [this, sensor]
                     {
           float value;
-          if (!sensor->try_get_temperature_c(&value)) {
+          bool ok = false;
+          for (int attempt = 0; attempt < 3 && !ok; attempt++) {
+            ok = sensor->try_get_temperature_c(&value);
+          }
+          if (!ok) {
             status_set_warning();
             return;
           }
