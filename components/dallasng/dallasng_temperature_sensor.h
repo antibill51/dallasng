@@ -58,6 +58,11 @@ namespace esphome
                 resolution_ = resolution;
             }
 
+            void set_extra_delay_ms(uint16_t delay_ms)
+            {
+                extra_delay_ms_ = delay_ms;
+            }
+
             void dumpScratchpad(DSTherm::Scratchpad &scratchpad)
             {
                 auto raw = scratchpad.getRaw();
@@ -103,6 +108,11 @@ namespace esphome
 
             bool try_get_temperature_c(float *value)
             {
+                if (extra_delay_ms_ > 0)
+                {
+                    delay(extra_delay_ms_);
+                }
+
                 auto sensor = DSTherm(*parent_->one_wire_);
                 Placeholder<DSTherm::Scratchpad> scratchpad;
                 auto result = sensor.readScratchpad(id_, &scratchpad);
@@ -122,7 +132,7 @@ namespace esphome
 
             uint16_t millis_to_wait_for_conversion() const
             {
-                return DSTherm::getConversionTime((DSTherm::Resolution)(resolution_ - 9));
+                return DSTherm::getConversionTime((DSTherm::Resolution)(resolution_ - 9)) + extra_delay_ms_;
             }
 
         private:
@@ -132,6 +142,7 @@ namespace esphome
             uint8_t resolution_ = 12;
             std::string address_name_;
             optional<uint8_t> index_;
+            uint16_t extra_delay_ms_ = 0;
         };
     }
 }
