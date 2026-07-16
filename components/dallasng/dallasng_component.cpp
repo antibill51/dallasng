@@ -102,7 +102,7 @@ namespace esphome
 
       for (auto *sensor : sensors_)
       {
-        set_timeout(sensor->get_address_name().c_str(), sensor->millis_to_wait_for_conversion(), [this, sensor]
+        this->set_timeout(sensor->get_address_name(), sensor->millis_to_wait_for_conversion(), [this, sensor]
                     {
           float value;
           if (!sensor->try_get_temperature_c(&value)) {
@@ -114,5 +114,5 @@ namespace esphome
       }
     }
 
-  } // namespace dallas
+  } // namespace dallasng
 } // namespace esphome
