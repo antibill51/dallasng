@@ -28,6 +28,11 @@ namespace esphome
                 return address_;
             }
 
+            const OneWireNg::Id *get_id_ptr() const
+            {
+                return &id_;
+            }
+
             const std::string get_address_name()
             {
                 if (address_name_.empty())
@@ -108,11 +113,6 @@ namespace esphome
 
             bool try_get_temperature_c(float *value)
             {
-                if (extra_delay_ms_ > 0)
-                {
-                    delay(extra_delay_ms_);
-                }
-
                 auto sensor = DSTherm(*parent_->one_wire_);
                 Placeholder<DSTherm::Scratchpad> scratchpad;
                 auto result = sensor.readScratchpad(id_, &scratchpad);
