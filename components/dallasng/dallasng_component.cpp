@@ -102,7 +102,8 @@ namespace esphome
 
       for (auto *sensor : sensors_)
       {
-        this->set_timeout(sensor->get_address_name(), sensor->millis_to_wait_for_conversion(), [this, sensor]
+        uint32_t timeout_id = static_cast<uint32_t>(sensor->get_address());
+        this->set_timeout(timeout_id, sensor->millis_to_wait_for_conversion(), [this, sensor]
                     {
           float value;
           if (!sensor->try_get_temperature_c(&value)) {
