@@ -12,6 +12,7 @@ from esphome.const import (
 from . import DallasNgComponent, dallasng_ns
 
 CONF_DALLASNG_ID = "dallasng_id"
+CONF_EXTRA_DELAY = "extra_delay"
 
 DallasNgTemperatureSensor = dallasng_ns.class_("DallasNgTemperatureSensor", sensor.Sensor)
 
@@ -28,6 +29,7 @@ CONFIG_SCHEMA = cv.All(
             cv.Optional(CONF_ADDRESS): cv.hex_int,
             cv.Optional(CONF_INDEX): cv.positive_int,
             cv.Optional(CONF_RESOLUTION, default=12): cv.int_range(min=9, max=12),
+            cv.Optional(CONF_EXTRA_DELAY, default="0ms"): cv.positive_time_period_milliseconds,
         }
     ),
     cv.has_exactly_one_key(CONF_ADDRESS, CONF_INDEX),
@@ -45,6 +47,8 @@ async def to_code(config):
 
     if CONF_RESOLUTION in config:
         cg.add(var.set_resolution(config[CONF_RESOLUTION]))
+
+    cg.add(var.set_extra_delay_ms(config[CONF_EXTRA_DELAY]))
 
     cg.add(var.set_parent(hub))
 
