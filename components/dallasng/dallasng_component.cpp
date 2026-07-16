@@ -84,24 +84,24 @@ namespace esphome
     void DallasNgComponent::update()
     {
       status_clear_warning();
-      OneWireNg::ErrorCode result = one_wire_->reset();
-      if (result != OneWireNg::EC_SUCCESS)
-      {
-        ESP_LOGE(TAG, "Failed to reset the bus: %d", result);
-        status_set_warning();
-
-        for (auto *sensor : sensors_)
-        {
-          sensor->publish_state(NAN);
-        }
-        return;
-      }
-
-      one_wire_->addressAll();
-      one_wire_->writeByte(DSTherm::CMD_CONVERT_T);
 
       for (auto *sensor : sensors_)
       {
+        OneWireNg::Id id;
+        memcpy(&id[0], sensor->get_id_ptr(), sizeof(id));
+
+        OneWireNg::ErrorCode result = one_wire_->reset();
+        if (result != OneWireNg::EC_SUCCESS)
+        {
+          ESP_LOGE(TAG, "'%s' failed to reset the bus: %d", sensor->get_name().c_str(), result);
+          status_set_warning();
+          sensor->publish_state(NAN);
+          continue;
+        }
+
+        one_wire_->addressSingle(id);
+        one_wire_->writeByte(DSTherm::CMD_CONVERT_T);
+
         uint32_t timeout_id = static_cast<uint32_t>(sensor->get_address());
         this->set_timeout(timeout_id, sensor->millis_to_wait_for_conversion(), [this, sensor]
                     {
